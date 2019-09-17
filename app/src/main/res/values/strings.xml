@@ -1,3 +1,7 @@
 <resources>
     <string name="app_name">keeplovepet</string>
+
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_Pets_fragment">Hello Pets fragment</string>
+    <string name="hello_Home_fragment">Hello Home fragment</string>
 </resources>
