@@ -1,7 +1,15 @@
 package com.sniperking.keeplovepet.utils
 
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
+import com.sniperking.keeplovepet.model.BottomBar
 import com.sniperking.keeplovepet.model.Destination
-import java.util.concurrent.atomic.AtomicBoolean
+import org.json.JSONObject
+
+fun dp2px(size : Int) : Int{
+    val fl = AppGlobals.getApplication().resources.displayMetrics.density * size + 0.5f
+    return fl.toInt()
+}
 
 fun parseFile(fileName : String):String{
     var builder = StringBuilder()
@@ -14,8 +22,17 @@ fun parseFile(fileName : String):String{
 }
 
 class AppConfig {
-    var atomicBoolean = AtomicBoolean(false)
     companion object{
+        val destConfig : HashMap<String, Destination> by lazy {
+            var content = parseFile("destination.json")
+            val type = object : TypeToken<HashMap<String,Destination>>(){}.type
+            Gson().fromJson<HashMap<String,Destination>>(content,type)
+        }
 
+        val bottomBar by lazy {
+            var content = parseFile("main_tabs_config.json")
+            val type = object : TypeToken<BottomBar>(){}.type
+            Gson().fromJson<BottomBar>(content,type)
+        }
     }
 }

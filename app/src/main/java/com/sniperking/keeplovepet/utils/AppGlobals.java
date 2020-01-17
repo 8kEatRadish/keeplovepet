@@ -1,6 +1,5 @@
 package com.sniperking.keeplovepet.utils;
 
-import android.annotation.SuppressLint;
 import android.app.Application;
 
 import java.lang.reflect.InvocationTargetException;
