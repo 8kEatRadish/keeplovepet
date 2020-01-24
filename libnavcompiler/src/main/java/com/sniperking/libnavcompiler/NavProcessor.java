@@ -1,11 +1,11 @@
-package com.konka.libnavcompiler;
+package com.sniperking.libnavcompiler;
 
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.google.auto.service.AutoService;
-import com.konka.libnavannotation.ActivityDestination;
-import com.konka.libnavannotation.FragmentDestination;
+import com.sniperking.libnavannotation.ActivityDestination;
+import com.sniperking.libnavannotation.FragmentDestination;
 
 import java.io.File;
 import java.io.FileOutputStream;

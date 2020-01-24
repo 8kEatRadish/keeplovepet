@@ -10,7 +10,7 @@ import android.widget.TextView
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
-import com.konka.libnavannotation.FragmentDestination
+import com.sniperking.libnavannotation.FragmentDestination
 import com.sniperking.keeplovepet.R
 import kotlinx.android.synthetic.main.fragment_home.*
 import kotlinx.coroutines.Dispatchers

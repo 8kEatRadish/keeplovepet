@@ -8,7 +8,7 @@ import android.widget.TextView
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
-import com.konka.libnavannotation.FragmentDestination
+import com.sniperking.libnavannotation.FragmentDestination
 import com.sniperking.keeplovepet.R
 
 @FragmentDestination(pageUrl = "main/tabs/dashboard", asStarter = false)
