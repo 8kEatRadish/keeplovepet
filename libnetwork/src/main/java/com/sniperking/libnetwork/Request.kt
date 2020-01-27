@@ -6,13 +6,12 @@ import okhttp3.Call
 import okhttp3.Callback
 import okhttp3.Response
 import java.io.IOException
-import java.io.Serializable
-import java.lang.StringBuilder
 import java.lang.annotation.Retention
 import java.lang.annotation.RetentionPolicy
 import java.lang.reflect.ParameterizedType
+import java.lang.reflect.Type
 
-abstract class Request<T, R : Request<T,R>>(protected val mUrl: String) {
+abstract class Request<T, R : Request<T, R>>(protected val mUrl: String) {
     private val headers: HashMap<String, String> = HashMap()
     protected val params: HashMap<String, Object> = HashMap()
 
@@ -30,6 +29,8 @@ abstract class Request<T, R : Request<T,R>>(protected val mUrl: String) {
         const val NET_CACHE = 4
     }
 
+    private lateinit var mType: Type
+
     @IntDef(
         CACHE_ONLY,
         CACHE_FIRST,
@@ -38,6 +39,8 @@ abstract class Request<T, R : Request<T,R>>(protected val mUrl: String) {
     )
     @Retention(RetentionPolicy.SOURCE)
     annotation class CacheStrategy
+
+    private val mCacheStrategy: Int = NET_ONLY
 
     fun addHeader(key: String, value: String): R {
         headers[key] = value
@@ -69,40 +72,83 @@ abstract class Request<T, R : Request<T,R>>(protected val mUrl: String) {
         return this as R
     }
 
-    fun execute(jsonCallback: JsonCallback<T>?) {
-        if (jsonCallback == null) {
+    fun  execute(): ApiResponse<Object>? {
+        if (mType == null) {
+            throw RuntimeException("同步方法,response 返回值 类型必须设置");
+        }
 
-        } else {
-            getCall().enqueue(object : Callback{
-                override fun onFailure(call: Call, e: IOException) {
-                    val response = ApiResponse<T>(false,null,e.message,null)
+        if (mCacheStrategy != CACHE_ONLY) {
+            var result: ApiResponse<Object> = ApiResponse(null,null,null,null)
+            try {
+                var response = getCall().execute()
+                result = parseResponse(response, null);
+            } catch (e:IOException) {
+                e.printStackTrace();
+                if (result == null) {
+                    result = ApiResponse(null,null,null,null);
+                    result.message = e.toString();
+                }
+            }
+            return result;
+        }
+        return null;
+    }
+
+    fun execute(jsonCallback: JsonCallback<T>) {
+        getCall().enqueue(object : Callback {
+            override fun onFailure(call: Call, e: IOException) {
+                val response = ApiResponse<Object>(false, null, e.message, null)
+                jsonCallback.onError(response)
+            }
+
+            override fun onResponse(call: Call, response: Response) {
+                val response: ApiResponse<Object> = parseResponse(response, jsonCallback)
+                if (response.success!!) {
+                    jsonCallback.onSuccess(response)
+                } else {
                     jsonCallback.onError(response)
                 }
+            }
+        })
+    }
 
-                override fun onResponse(call: Call, response: Response) {
-                    val response : ApiResponse<T> = parseResponse(response, jsonCallback)
-                    if (response.success){
-                        jsonCallback.onSuccess(response)
-                    }else{
-                        jsonCallback.onError(response)
-                    }
-                }
-            })
-        }
+    fun responseType(type: Type): R {
+        mType = type
+        return this as R
     }
 
     private fun parseResponse(
         response: Response,
-        callback: JsonCallback<T>
-    ): ApiResponse<T> {
-        var message : String? = null
+        callback: JsonCallback<T>?
+    ): ApiResponse<Object> {
+        var message: String? = null
         var status = response.code
         var isSuccess = response.isSuccessful
-        if (isSuccess){
-            val body = response.body.toString()
-        }else{
-
+        var result: ApiResponse<Object> = ApiResponse(isSuccess, status, message, null)
+        val convert = ApiService.sConvert
+        val body = response.body.toString()
+        try {
+            if (isSuccess) {
+                if (callback != null) {
+                    var type = callback.javaClass.genericSuperclass as ParameterizedType
+                    val argument = type.actualTypeArguments[0]
+                    result.body = convert?.convert(body, argument)
+                } else if (mType != null) {
+                    result.body = convert?.convert(body, mType)
+                } else {
+                    Log.e("request", "parseResponse: 无法解析 ")
+                }
+            } else {
+                message = body
+            }
+        } catch (e: Exception) {
+            message = e.toString()
+            isSuccess = false
         }
+        result.success = isSuccess
+        result.message = message
+        result.status = status
+        return result
     }
 
     private fun getCall(): Call {
@@ -117,7 +163,7 @@ abstract class Request<T, R : Request<T,R>>(protected val mUrl: String) {
 
     private fun addHeaders(builder: okhttp3.Request.Builder) {
         for (entry in headers.entries) {
-            builder.addHeader(entry.key,entry.value)
+            builder.addHeader(entry.key, entry.value)
         }
     }
 }

@@ -10,6 +10,8 @@ import javax.net.ssl.*
 
 class ApiService {
     companion object{
+        var sBaseUrl : String = ""
+        var sConvert : Convert<Object>? = null
         private val interceptor : HttpLoggingInterceptor = HttpLoggingInterceptor().setLevel(HttpLoggingInterceptor.Level.BODY)
         val okHttpClient: OkHttpClient by lazy {
             OkHttpClient.Builder().readTimeout(5,TimeUnit.SECONDS)
@@ -38,6 +40,14 @@ class ApiService {
             it.init(null, trustManagers, SecureRandom())
             HttpsURLConnection.setDefaultSSLSocketFactory(it.socketFactory)
             HttpsURLConnection.setDefaultHostnameVerifier { _, _ -> true }
+        }
+
+        fun init(baseUrl : String, convert: Convert<Object>){
+            sBaseUrl = baseUrl
+            if (sConvert == null){
+                sConvert = JsonConvert()
+            }
+            sConvert = convert
         }
     }
 }
