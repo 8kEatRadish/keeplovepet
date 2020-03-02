@@ -20,7 +20,6 @@ class MainActivity : AppCompatActivity() {
         navController = findNavController(R.id.nav_host_fragment)
         navView.setupWithNavController(navController)
         NavGraphBuilder.builder(navController)
-
         navView.setOnNavigationItemSelectedListener {
             navController.navigate(it.itemId)
             //true：选中；false：没有选中；
